@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Momentum — Tu diario inteligente</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #F5F0E8;
+    --warm-white: #FAF7F2;
+    --ink: #1C1917;
+    --ink-soft: #44403C;
+    --ink-muted: #78716C;
+    --accent: #C8956C;
+    --accent-soft: #E8C9A8;
+    --accent-pale: #F5E6D3;
+    --sage: #7C9E8A;
+    --sage-pale: #E8F0EB;
+    --crisis: #DC6B6B;
+    --crisis-pale: #FDEAEA;
+    --border: rgba(28,25,23,0.1);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(ellipse at 20% 20%, rgba(200,149,108,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 80%, rgba(124,158,138,0.08) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .screen { display: none; position: relative; z-index: 1; }
+  .screen.active { display: flex; }
+
+  /* LANDING */
+  #landing {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 40px 24px;
+    text-align: center;
+    animation: fadeIn 0.8s ease;
+  }
+  .logo-mark {
+    width: 64px; height: 64px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-soft));
+    border-radius: 20px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 24px;
+    font-size: 28px;
+    box-shadow: 0 8px 32px rgba(200,149,108,0.3);
+    animation: float 4s ease-in-out infinite;
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+  h1.brand {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(42px, 8vw, 72px);
+    font-weight: 400;
+    letter-spacing: -1px;
+    line-height: 1;
+    margin-bottom: 16px;
+    background: linear-gradient(135deg, var(--ink) 0%, var(--accent) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .tagline {
+    font-size: 18px;
+    color: var(--ink-soft);
+    font-weight: 300;
+    max-width: 380px;
+    line-height: 1.6;
+    margin-bottom: 48px;
+  }
+  .tagline em { font-family: 'Playfair Display', serif; font-style: italic; color: var(--accent); }
+  .btn-primary {
+    background: var(--ink);
+    color: var(--cream);
+    border: none;
+    padding: 16px 40px;
+    border-radius: 50px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  .btn-primary:hover {
+    background: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(200,149,108,0.4);
+  }
+  .features-row {
+    display: flex; gap: 12px; margin-top: 48px;
+    flex-wrap: wrap; justify-content: center;
+  }
+  .feature-pill {
+    background: var(--warm-white);
+    border: 1px solid var(--border);
+    border-radius: 50px;
+    padding: 8px 18px;
+    font-size: 13px;
+    color: var(--ink-soft);
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  /* APP */
+  #app { flex-direction: row; min-height: 100vh; animation: fadeIn 0.5s ease; }
+
+  .sidebar {
+    width: 280px;
+    background: var(--warm-white);
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    padding: 28px 0; flex-shrink: 0;
+  }
+  .sidebar-logo {
+    padding: 0 24px 28px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .sidebar-logo-mark {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-soft));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .sidebar-logo span {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px; font-weight: 600; color: var(--ink);
+  }
+  .nav-section { padding: 20px 16px 0; flex: 1; }
+  .nav-label {
+    font-size: 11px; font-weight: 500; color: var(--ink-muted);
+    text-transform: uppercase; letter-spacing: 1px;
+    padding: 0 8px; margin-bottom: 8px;
+  }
+  .entry-item {
+    padding: 10px 12px; border-radius: 10px;
+    cursor: pointer; transition: background 0.2s; margin-bottom: 4px;
+  }
+  .entry-item:hover { background: var(--accent-pale); }
+  .entry-item.active { background: var(--accent-pale); }
+  .entry-date { font-size: 12px; color: var(--ink-muted); margin-bottom: 2px; }
+  .entry-preview { font-size: 13px; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .new-entry-btn {
+    margin: 16px 16px 0;
+    padding: 12px;
+    background: var(--accent); color: white;
+    border: none; border-radius: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px; font-weight: 500;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: all 0.2s;
+  }
+  .new-entry-btn:hover { background: #b5804f; transform: translateY(-1px); }
+
+  .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .top-bar {
+    padding: 24px 36px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--warm-white);
+  }
+  .today-label { font-family: 'Playfair Display', serif; font-size: 20px; color: var(--ink); }
+  .mood-strip { display: flex; gap: 8px; }
+  .mood-btn {
+    width: 36px; height: 36px; border-radius: 50%;
+    border: 2px solid transparent;
+    background: var(--cream); cursor: pointer;
+    font-size: 18px; transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .mood-btn:hover { transform: scale(1.2); }
+  .mood-btn.selected { border-color: var(--accent); background: var(--accent-pale); }
+
+  .writing-area {
+    flex: 1; display: flex; flex-direction: column;
+    padding: 36px; overflow-y: auto; gap: 24px;
+  }
+  .prompt-card {
+    background: var(--accent-pale);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 12px 12px 0;
+    padding: 16px 20px;
+    font-size: 14px; color: var(--ink-soft);
+    font-style: italic; font-family: 'Playfair Display', serif;
+  }
+  .journal-textarea {
+    background: transparent; border: none; outline: none;
+    resize: none;
+    font-family: 'Playfair Display', serif;
+    font-size: 18px; line-height: 1.9;
+    color: var(--ink); flex: 1; min-height: 200px;
+    caret-color: var(--accent);
+  }
+  .journal-textarea::placeholder { color: var(--ink-muted); font-style: italic; }
+
+  .bottom-bar {
+    padding: 20px 36px;
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--warm-white);
+  }
+  .word-count { font-size: 13px; color: var(--ink-muted); }
+  .send-btn {
+    background: var(--ink); color: var(--cream);
+    border: none; padding: 12px 28px;
+    border-radius: 50px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px; font-weight: 500;
+    cursor: pointer; transition: all 0.3s;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .send-btn:hover:not(:disabled) {
+    background: var(--accent);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(200,149,108,0.3);
+  }
+  .send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .loading-dots {
+    display: none; align-items: center; gap: 6px; padding: 20px 0;
+  }
+  .loading-dots.visible { display: flex; }
+  .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--accent); animation: bounce 1.2s infinite;
+  }
+  .dot:nth-child(2) { animation-delay: 0.2s; }
+  .dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce {
+    0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+    40% { transform: scale(1); opacity: 1; }
+  }
+
+  .ai-response {
+    background: var(--warm-white);
+    border: 1px solid var(--border);
+    border-radius: 16px; padding: 24px;
+    animation: slideUp 0.4s ease; display: none;
+  }
+  .ai-response.visible { display: block; }
+  .ai-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+  .ai-avatar {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, var(--accent), var(--sage));
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+  }
+  .ai-name { font-size: 13px; font-weight: 500; color: var(--ink-soft); }
+  .ai-text { font-size: 15px; line-height: 1.8; color: var(--ink-soft); white-space: pre-wrap; }
+
+  .crisis-card {
+    background: var(--crisis-pale);
+    border: 2px solid var(--crisis);
+    border-radius: 16px; padding: 24px;
+    animation: slideUp 0.4s ease; display: none;
+  }
+  .crisis-card.visible { display: block; }
+  .crisis-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+  .crisis-icon {
+    width: 36px; height: 36px; background: var(--crisis);
+    border-radius: 50%; display: flex; align-items: center;
+    justify-content: center; font-size: 16px; color: white; flex-shrink: 0;
+  }
+  .crisis-title { font-family: 'Playfair Display', serif; font-size: 17px; color: var(--crisis); }
+  .crisis-text { font-size: 15px; line-height: 1.8; color: var(--ink-soft); margin-bottom: 20px; }
+  .crisis-resources { background: white; border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+  .crisis-resources h4 {
+    font-size: 13px; font-weight: 500;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    color: var(--crisis); margin-bottom: 10px;
+  }
+  .resource-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,0.06);
+    font-size: 14px; color: var(--ink-soft);
+  }
+  .resource-item:last-child { border-bottom: none; }
+
+  .insights-panel {
+    width: 260px; background: var(--warm-white);
+    border-left: 1px solid var(--border);
+    padding: 28px 20px;
+    display: flex; flex-direction: column; gap: 20px; overflow-y: auto;
+  }
+  .panel-title { font-family: 'Playfair Display', serif; font-size: 16px; color: var(--ink); margin-bottom: 4px; }
+  .insight-card {
+    background: var(--cream); border-radius: 12px;
+    padding: 16px; border: 1px solid var(--border);
+  }
+  .insight-label {
+    font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.8px; color: var(--ink-muted); margin-bottom: 8px;
+  }
+  .insight-value { font-size: 24px; font-weight: 500; color: var(--accent); margin-bottom: 4px; }
+  .insight-desc { font-size: 12px; color: var(--ink-muted); line-height: 1.5; }
+  .streak-bar { display: flex; gap: 4px; margin-top: 8px; }
+  .streak-day { width: 20px; height: 6px; border-radius: 3px; background: var(--border); }
+  .streak-day.done { background: var(--accent); }
+  .mood-history { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .mood-tag {
+    font-size: 18px; background: var(--cream);
+    border: 1px solid var(--border); border-radius: 8px; padding: 4px 8px;
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  @media (max-width: 900px) { .insights-panel { display: none; } .sidebar { width: 220px; } }
+  @media (max-width: 640px) { .sidebar { display: none; } .writing-area { padding: 20px; } .top-bar, .bottom-bar { padding: 16px 20px; } }
+</style>
+</head>
+<body>
+
+<div class="screen active" id="landing">
+  <div class="logo-mark">✦</div>
+  <h1 class="brand">Momentum</h1>
+  <p class="tagline">Tu diario personal inteligente.<br>Un espacio <em>íntimo</em> donde tu mente encuentra claridad.</p>
+  <button class="btn-primary" onclick="showApp()">Comenzar mi diario →</button>
+  <div class="features-row">
+    <div class="feature-pill">✦ IA que te conoce</div>
+    <div class="feature-pill">🔒 Solo tuyo, privado</div>
+    <div class="feature-pill">💬 En español natural</div>
+    <div class="feature-pill">📊 Insights semanales</div>
+  </div>
+</div>
+
+<div class="screen" id="app">
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-mark">✦</div>
+      <span>Momentum</span>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Entradas recientes</div>
+      <div class="entry-item active">
+        <div class="entry-date">Hoy</div>
+        <div class="entry-preview">Escribe tu primera entrada...</div>
+      </div>
+    </div>
+    <button class="new-entry-btn">+ Nueva entrada</button>
+  </div>
+
+  <div class="main-content">
+    <div class="top-bar">
+      <div class="today-label" id="today-label">Cargando...</div>
+      <div class="mood-strip">
+        <button class="mood-btn" onclick="selectMood(this, '😄')">😄</button>
+        <button class="mood-btn" onclick="selectMood(this, '🙂')">🙂</button>
+        <button class="mood-btn" onclick="selectMood(this, '😐')">😐</button>
+        <button class="mood-btn" onclick="selectMood(this, '😔')">😔</button>
+        <button class="mood-btn" onclick="selectMood(this, '😢')">😢</button>
+      </div>
+    </div>
+
+    <div class="writing-area" id="writing-area">
+      <div class="prompt-card">"¿Qué fue lo más significativo que viviste hoy?"</div>
+
+      <textarea
+        class="journal-textarea"
+        id="journal-input"
+        placeholder="Escribe libremente... Este es tu espacio."
+        rows="8"
+        oninput="updateWordCount()"
+      ></textarea>
+
+      <div class="loading-dots" id="loading-dots">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <span style="font-size:13px;color:var(--ink-muted);margin-left:4px">Momentum está reflexionando...</span>
+      </div>
+
+      <div class="ai-response" id="ai-response">
+        <div class="ai-header">
+          <div class="ai-avatar">✦</div>
+          <div class="ai-name">Momentum</div>
+        </div>
+        <div class="ai-text" id="ai-text"></div>
+      </div>
+
+      <div class="crisis-card" id="crisis-card">
+        <div class="crisis-header">
+          <div class="crisis-icon">🤍</div>
+          <div class="crisis-title">Estoy aquí contigo</div>
+        </div>
+        <div class="crisis-text">Lo que estás sintiendo es real, y es muy valioso que lo hayas puesto en palabras. Momentum está aquí con vos en este momento. Pero lo que describís merece una atención humana real, de alguien que pueda acompañarte de verdad.</div>
+        <div class="crisis-resources">
+          <h4>Habla con alguien ahora</h4>
+          <div class="resource-item">📞 <strong>Paraguay:</strong> SOS Vida — 021 206 061</div>
+          <div class="resource-item">📞 <strong>Argentina:</strong> Centro de Asistencia al Suicida — 135</div>
+          <div class="resource-item">📞 <strong>México:</strong> SAPTEL — 55 5259-8121</div>
+          <div class="resource-item">📞 <strong>España:</strong> Teléfono de la Esperanza — 717 003 717</div>
+          <div class="resource-item">💬 <strong>Internacional:</strong> befrienders.org</div>
+        </div>
+        <p style="font-size:13px;color:var(--ink-muted);line-height:1.6">Por favor, contactá a uno de estos recursos — no tenés que pasar esto solo/a.</p>
+      </div>
+    </div>
+
+    <div class="bottom-bar">
+      <div class="word-count" id="word-count">0 palabras</div>
+      <button class="send-btn" id="send-btn" onclick="sendEntry()" disabled>
+        Compartir con Momentum ✦
+      </button>
+    </div>
+  </div>
+
+  <div class="insights-panel">
+    <div>
+      <div class="panel-title">Tu semana</div>
+      <p style="font-size:12px;color:var(--ink-muted)">Patrones y reflexiones</p>
+    </div>
+    <div class="insight-card">
+      <div class="insight-label">Racha actual</div>
+      <div class="insight-value">1 día</div>
+      <div class="streak-bar">
+        <div class="streak-day done"></div>
+        <div class="streak-day"></div>
+        <div class="streak-day"></div>
+        <div class="streak-day"></div>
+        <div class="streak-day"></div>
+        <div class="streak-day"></div>
+        <div class="streak-day"></div>
+      </div>
+      <div class="insight-desc" style="margin-top:8px">¡Hoy arranca tu racha! La constancia trae claridad.</div>
+    </div>
+    <div class="insight-card" style="background:var(--sage-pale);border-color:var(--sage)">
+      <div class="insight-label" style="color:var(--sage)">Tip de hoy</div>
+      <div style="font-size:13px;color:var(--ink-soft);line-height:1.7;font-family:'Playfair Display',serif;font-style:italic">
+        "Escribir aunque sea 3 líneas al día cambia la forma en que procesás las emociones."
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const days = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const months = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  const now = new Date();
+  document.getElementById('today-label').textContent =
+    `${days[now.getDay()]}, ${now.getDate()} de ${months[now.getMonth()]}`;
+
+  let selectedMoodEmoji = '';
+
+  function showApp() {
+    document.getElementById('landing').classList.remove('active');
+    document.getElementById('app').classList.add('active');
+  }
+
+  function selectMood(btn, emoji) {
+    document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    selectedMoodEmoji = emoji;
+  }
+
+  function updateWordCount() {
+    const text = document.getElementById('journal-input').value.trim();
+    const words = text ? text.split(/\s+/).length : 0;
+    document.getElementById('word-count').textContent = `${words} ${words === 1 ? 'palabra' : 'palabras'}`;
+    document.getElementById('send-btn').disabled = words < 3;
+  }
+
+  const CRISIS_KEYWORDS = [
+    'suicid','matarme','quitarme la vida','no quiero vivir','ya no puedo más',
+    'terminar con todo','hacerme daño','no vale la pena seguir','mejor si no estuviera',
+    'quiero morir','me quiero morir','desaparecer para siempre','no tiene sentido vivir'
+  ];
+
+  function detectCrisis(text) {
+    const lower = text.toLowerCase();
+    return CRISIS_KEYWORDS.some(kw => lower.includes(kw));
+  }
+
+  async function sendEntry() {
+    const text = document.getElementById('journal-input').value.trim();
+    if (!text) return;
+
+    const btn = document.getElementById('send-btn');
+    btn.disabled = true;
+    document.getElementById('ai-response').classList.remove('visible');
+    document.getElementById('crisis-card').classList.remove('visible');
+
+    if (detectCrisis(text)) {
+      document.getElementById('crisis-card').classList.add('visible');
+      document.getElementById('crisis-card').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      btn.disabled = false;
+      return;
+    }
+
+    document.getElementById('loading-dots').classList.add('visible');
+
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ entry: text, mood: selectedMoodEmoji })
+      });
+
+      const data = await response.json();
+      document.getElementById('loading-dots').classList.remove('visible');
+      document.getElementById('ai-text').textContent = data.response || "Hubo un momento de silencio. ¿Querés intentarlo de nuevo?";
+      document.getElementById('ai-response').classList.add('visible');
+      document.getElementById('ai-response').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    } catch (err) {
+      document.getElementById('loading-dots').classList.remove('visible');
+      document.getElementById('ai-text').textContent = "Hubo un error de conexión. ¿Querés intentarlo de nuevo?";
+      document.getElementById('ai-response').classList.add('visible');
+    }
+
+    btn.disabled = false;
+  }
+</script>
+</body>
+</html>

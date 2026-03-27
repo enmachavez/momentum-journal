@@ -1,48 +1,39 @@
-export default async function handler(req, res) {
+export const config = {
+  runtime: 'edge',
+};
+
+export default async function handler(req) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405 });
   }
 
-  const { entry, mood } = req.body;
+  const { entry, mood } = await req.json();
 
-  try {
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": process.env.ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01"
-      },
-      body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
-        max_tokens: 1000,
-        system: `Sos Momentum, una IA de diario personal cálida, empática y reflexiva que acompaña a hispanohablantes en su autoconocimiento. Tu rol es ser un espejo inteligente y un compañero de reflexión — no un terapeuta.
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": process.env.ANTHROPIC_API_KEY,
+      "anthropic-version": "2023-06-01"
+    },
+    body: JSON.stringify({
+      model: "claude-haiku-4-5-20251001",
+      max_tokens: 1000,
+      system: `Sos Momentum, una IA de diario personal cálida y reflexiva para hispanohablantes. Sos un espejo inteligente — no un terapeuta. Respondé en máximo 3 párrafos cortos, con una observación genuina y una sola pregunta de reflexión al final. Usá español latinoamericano natural. Nunca uses frases genéricas como "gracias por compartir".`,
+      messages: [
+        {
+          role: "user",
+          content: `Entrada de diario${mood ? ` (estado de ánimo: ${mood})` : ''}:\n\n"${entry}"`
+        }
+      ]
+    })
+  });
 
-PERSONALIDAD: Cálida pero no empalagosa. Directa pero gentil. Curiosa. Nunca juzgás.
+  const data = await response.json();
+  const text = data.content?.[0]?.text || "Hubo un momento de silencio. ¿Querés intentarlo de nuevo?";
 
-FORMATO:
-- Máximo 3 párrafos cortos
-- Comenzá con una observación genuina sobre lo que la persona escribió
-- Hacé UNA sola pregunta de reflexión al final, abierta y significativa
-- Usá español de América Latina natural
-- Nunca uses frases genéricas como "gracias por compartir"
-- Sé específico con lo que la persona escribió
-
-LÍMITES: Si detectás señales de crisis o mención de hacerse daño, respondé solo con calidez breve y derivá a un profesional.`,
-        messages: [
-          {
-            role: "user",
-            content: `Entrada de diario${mood ? ` (estado de ánimo: ${mood})` : ''}:\n\n"${entry}"`
-          }
-        ]
-      })
-    });
-
-    const data = await response.json();
-    const text = data.content?.[0]?.text || "Hubo un momento de silencio. ¿Querés intentarlo de nuevo?";
-    res.status(200).json({ response: text });
-
-  } catch (error) {
-    res.status(500).json({ error: "Error conectando con Momentum" });
-  }
+  return new Response(JSON.stringify({ response: text }), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' }
+  });
 }
